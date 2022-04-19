@@ -101,6 +101,7 @@ jobs:
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+          terraform workspace select dev
           terraform workspace delete ${{ inputs.TERRAFORM_WORKSPACE }}
 
       - name: Create and change Terraform workspace for dev
