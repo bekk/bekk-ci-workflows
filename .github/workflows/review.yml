@@ -76,7 +76,7 @@ jobs:
       - name: Deploy review environment
         working-directory: terraform
         id: deploy-review
-        if: github.event.action != 'closed' || github.event.pull_request.merged == false
+        if: github.event.action != 'closed'
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
             -var "preview_name=${{ inputs.TERRAFORM_WORKSPACE }}" \
@@ -87,7 +87,7 @@ jobs:
       - name: Get deployment url for review environment
         working-directory: terraform
         id: deploy-url
-        if: github.event.action != 'closed' || github.event.pull_request.merged == false
+        if: github.event.action != 'closed'
         run: | 
           terraform output URL
 
@@ -106,7 +106,7 @@ jobs:
       - name: Create and change Terraform workspace for dev
         working-directory: terraform
         id: workspace-dev
-        if: github.event.action != 'closed' || github.event.pull_request.merged == false
+        if: github.event.action != 'closed'
         run: |
           terraform workspace select dev \
           || terraform workspace new dev
@@ -114,7 +114,7 @@ jobs:
       - name: Terraform plan for merge to master
         working-directory: terraform
         id: plan-merge
-        if: github.event.action != 'closed' || github.event.pull_request.merged == false
+        if: github.event.action != 'closed'
         run: |
           terraform plan -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
@@ -123,7 +123,7 @@ jobs:
 
       - name: Update Pull Request
         uses: actions/github-script@v6
-        if: github.event.action != 'closed' || github.event.pull_request.merged == false
+        if: github.event.action != 'closed'
         env:
           PLAN: "terraform\n${{ steps.plan-merge.outputs.stdout }}"
           DEPLOY_URL: "${{ steps.deploy-url.outputs.stdout }}"
