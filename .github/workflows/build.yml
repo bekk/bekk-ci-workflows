@@ -3,9 +3,6 @@ name: Build and push docker image
 on:
   workflow_call:
     inputs:
-      ENVIRONMENT:
-        required: true
-        type: string
       AWS_REGION:
         required: false
         type: string
@@ -36,7 +33,6 @@ jobs:
   build:
     name: Build
     runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
     outputs:
       image: ${{ steps.build-results.outputs.image }}
       tag: ${{ steps.build-results.outputs.tag }}

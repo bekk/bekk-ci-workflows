@@ -3,9 +3,6 @@ name: Deploy review environment
 on:
   workflow_call: 
     inputs:
-      ENVIRONMENT:
-        required: true
-        type: string
       IMAGE_NAME:
         required: false
         type: string
@@ -32,7 +29,6 @@ jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
-    environment: ${{ inputs.ENVIRONMENT }}
 
     steps:
       - name: Checkout git repo
