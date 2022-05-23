@@ -4,13 +4,13 @@ on:
   workflow_call: 
     inputs:
       IMAGE_NAME:
-        required: false
+        required: true
         type: string
       IMAGE_TAG:
-        required: false
+        required: true
         type: string
       TERRAFORM_WORKSPACE:
-        required: false
+        required: true
         type: string
       TERRAFORM_VAR_FILE:
         required: false
@@ -28,8 +28,6 @@ jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
-    env:
-      WORKSPACE: echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
 
     steps:
       - name: Checkout git repo
@@ -62,6 +60,11 @@ jobs:
         working-directory: terraform
         id: validate
         run: terraform validate -no-color
+
+      - name: Set terraform workspace variable
+        id: tf-workspace
+        run: |
+          echo ::set-env name=WORKSPACE::"$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')"
 
       - name: Create and change Terraform workspace
         working-directory: terraform

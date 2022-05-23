@@ -24,14 +24,10 @@ on:
       SSH_PRIVATE_KEY:
         required: true
 
-
 jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
-    env:
-      WORKSPACE: echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
-
 
     steps:
       - name: Checkout git repo
@@ -64,6 +60,11 @@ jobs:
         working-directory: terraform
         id: validate
         run: terraform validate -no-color
+
+      - name: Set terraform workspace variable
+        id: tf-workspace
+        run: |
+          echo ::set-env name=WORKSPACE::"$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
