@@ -24,14 +24,10 @@ on:
       SSH_PRIVATE_KEY:
         required: true
 
-
 jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
-    env:
-      WORKSPACE: echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
-
 
     steps:
       - name: Checkout git repo
@@ -65,12 +61,17 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
+      - name: Set terraform workspace
+        id: tf-workspace
+        run: |
+          echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
+
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select $WORKSPACE \
-          || terraform workspace new $WORKSPACE
+          terraform workspace select ${{ steps.tf-workspace.outputs.stdout }} \
+          || terraform workspace new ${{ steps.tf-workspace.outputs.stdout }}
 
       - name: Deploy review environment
         working-directory: terraform
@@ -78,7 +79,7 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=$WORKSPACE" \
+            -var "preview_name=${{ steps.tf-workspace.outputs.stdout }}" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
@@ -96,12 +97,12 @@ jobs:
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
         run: |
           terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=$WORKSPACE" \
+            -var "preview_name=${{ steps.tf-workspace.outputs.stdout }}" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
           terraform workspace select dev
-          terraform workspace delete $WORKSPACE
+          terraform workspace delete ${{ steps.tf-workspace.outputs.stdout }}
 
       - name: Create and change Terraform workspace for dev
         working-directory: terraform
