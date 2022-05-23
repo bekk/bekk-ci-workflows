@@ -88,7 +88,7 @@ jobs:
         id: deploy-url
         if: github.event.action != 'closed'
         run: | 
-          terraform output URL
+          terraform output -raw URL
 
       - name: Teardown review environment
         working-directory: terraform
