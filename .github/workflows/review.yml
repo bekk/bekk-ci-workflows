@@ -61,17 +61,17 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-      - name: Set terraform workspace
+      - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
+          echo ::set-env name=WORKSPACE::"$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select ${{ steps.tf-workspace.outputs.stdout }} \
-          || terraform workspace new ${{ steps.tf-workspace.outputs.stdout }}
+          terraform workspace select $WORKSPACE \
+          || terraform workspace new $WORKSPACE
 
       - name: Deploy review environment
         working-directory: terraform
@@ -79,7 +79,7 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=${{ steps.tf-workspace.outputs.stdout }}" \
+            -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
@@ -97,12 +97,12 @@ jobs:
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
         run: |
           terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=${{ steps.tf-workspace.outputs.stdout }}" \
+            -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
           terraform workspace select dev
-          terraform workspace delete ${{ steps.tf-workspace.outputs.stdout }}
+          terraform workspace delete $WORKSPACE
 
       - name: Create and change Terraform workspace for dev
         working-directory: terraform

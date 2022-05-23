@@ -61,17 +61,17 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-      - name: Format terraform workspace
+      - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
+          echo ::set-env name=WORKSPACE::"$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select ${{ steps.tf-workspace.outputs.stdout }} \
-          || terraform workspace new ${{ steps.tf-workspace.outputs.stdout }}
+          terraform workspace select $WORKSPACE \
+          || terraform workspace new $WORKSPACE
 
       - name: Deploy environment
         working-directory: terraform
