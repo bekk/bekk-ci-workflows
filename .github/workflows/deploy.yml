@@ -28,6 +28,8 @@ jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
+    env:
+      WORKSPACE: echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
 
     steps:
       - name: Checkout git repo
@@ -65,8 +67,8 @@ jobs:
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select ${{ inputs.TERRAFORM_WORKSPACE }} \
-          || terraform workspace new ${{ inputs.TERRAFORM_WORKSPACE }}
+          terraform workspace select $WORKSPACE \
+          || terraform workspace new $WORKSPACE
 
       - name: Deploy environment
         working-directory: terraform

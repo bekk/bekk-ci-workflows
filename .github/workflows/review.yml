@@ -4,13 +4,13 @@ on:
   workflow_call: 
     inputs:
       IMAGE_NAME:
-        required: false
+        required: true
         type: string
       IMAGE_TAG:
-        required: false
+        required: true
         type: string
       TERRAFORM_WORKSPACE:
-        required: false
+        required: true
         type: string
       TERRAFORM_VAR_FILE:
         required: false
@@ -29,6 +29,9 @@ jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
+    env:
+      WORKSPACE: echo "${{ inputs.TERRAFORM_WORKSPACE }}" | sed "s/\//-/g"
+
 
     steps:
       - name: Checkout git repo
@@ -66,8 +69,8 @@ jobs:
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select ${{ inputs.TERRAFORM_WORKSPACE }} \
-          || terraform workspace new ${{ inputs.TERRAFORM_WORKSPACE }}
+          terraform workspace select $WORKSPACE \
+          || terraform workspace new $WORKSPACE
 
       - name: Deploy review environment
         working-directory: terraform
@@ -75,7 +78,7 @@ jobs:
         if: github.event.action != 'closed'
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=${{ inputs.TERRAFORM_WORKSPACE }}" \
+            -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
@@ -93,12 +96,12 @@ jobs:
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
         run: |
           terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "preview_name=${{ inputs.TERRAFORM_WORKSPACE }}" \
+            -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
           terraform workspace select dev
-          terraform workspace delete ${{ inputs.TERRAFORM_WORKSPACE }}
+          terraform workspace delete $WORKSPACE
 
       - name: Create and change Terraform workspace for dev
         working-directory: terraform
