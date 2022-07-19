@@ -1,7 +1,7 @@
-name: Deploy review environment
+name: Deploy preview environment
 
 on:
-  workflow_call: 
+  workflow_call:
     inputs:
       IMAGE_NAME:
         required: true
@@ -73,9 +73,9 @@ jobs:
           terraform workspace select $WORKSPACE \
           || terraform workspace new $WORKSPACE
 
-      - name: Deploy review environment
+      - name: Deploy preview environment
         working-directory: terraform
-        id: deploy-review
+        id: deploy-preview
         if: github.event.action != 'closed'
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
@@ -84,16 +84,16 @@ jobs:
             -var "task_image=${{ inputs.IMAGE_NAME }}" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
 
-      - name: Get deployment url for review environment
+      - name: Get deployment url for preview environment
         working-directory: terraform
         id: deploy-url
         if: github.event.action != 'closed'
-        run: | 
+        run: |
           terraform output -raw URL
 
-      - name: Teardown review environment
+      - name: Teardown preview environment
         working-directory: terraform
-        id: teardown-review
+        id: teardown-preview
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
         run: |
           terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
@@ -135,20 +135,20 @@ jobs:
             #### Terraform Initialization ⚙️\`${{ steps.init.outcome }}\`
             #### Terraform Validation 🤖\`${{ steps.validate.outcome }}\`
             #### Terraform Plan 📖\`${{ steps.plan-merge.outcome }}\`
-            
+
             #### Preview environment 🔗
             [${ process.env.DEPLOY_URL }](${ process.env.DEPLOY_URL })
-            
+
             <details><summary>Show plan for apply after merge to master</summary>
-            
+
             \`\`\`hcl\n
             ${ process.env.PLAN }
             \`\`\`
-            
+
             </details>
-            
+
             *Pusher: @${{ github.actor }}, Action: \`${{ github.event_name }}\`*`;
-            
+
             github.rest.issues.createComment({
               issue_number: context.issue.number,
               owner: context.repo.owner,
