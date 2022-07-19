@@ -64,7 +64,7 @@ jobs:
       - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')" >> $GITHUB_ENV
+          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\/\|_/-/g' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
 
       - name: Create and change Terraform workspace
         working-directory: terraform
