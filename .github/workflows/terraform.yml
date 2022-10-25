@@ -64,8 +64,16 @@ jobs:
           terraform workspace select $WORKSPACE \
           || terraform workspace new $WORKSPACE
 
-      - name: Deploy environment
+      - name: Deploy environment without vars
+        if: inputs.TERRAFORM_VAR_FILE == ''
         working-directory: terraform
-        id: deploy_review
+        id: deploy_without_vars
         run: |
-          terraform apply -auto-approve ${{ inputs.TERRAFORM_VAR_FILE != '' && -var-file inputs.TERRAFORM_VAR_FILE }} -no-color 
+          terraform apply -auto-approve -no-color 
+
+      - name: Deploy environment with vars
+        if: inputs.TERRAFORM_VAR_FILE != ''
+        working-directory: terraform
+        id: deploy_with_vars
+        run: |
+          terraform apply -auto-approve -var-file ${{ inputs.TERRAFORM_VAR_FILE }} -no-color 
