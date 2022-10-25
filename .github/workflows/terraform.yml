@@ -57,7 +57,7 @@ jobs:
           echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')" >> $GITHUB_ENV
 
       - name: Create and change Terraform workspace
-        if: ${{ inputs.TERRAFORM_WORKSPACE != ""}}
+        if: inputs.TERRAFORM_WORKSPACE != ""
         working-directory: terraform
         id: workspace
         run: |
