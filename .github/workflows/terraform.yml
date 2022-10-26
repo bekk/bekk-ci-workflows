@@ -14,7 +14,12 @@ on:
         required: false
         type: string
         default: eu-central-1
-    secrets: inherit
+    secrets:
+      BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY:
+        required: true
+      BEKK_BASEN_DEFAULT_AWS_ACCOUNT:
+        required: true
+
 
 jobs:
   terraform:
@@ -37,7 +42,7 @@ jobs:
         uses: aws-actions/configure-aws-credentials@v1
         with:
           role-to-assume: arn:aws:iam::${{ secrets.BEKK_BASEN_DEFAULT_AWS_ACCOUNT }}:role/tf_ci_basen_intern #TODO: Burde disse være inputs?
-          aws-region: inputs.AWS_REGION
+          aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Terraform Format
         working-directory: terraform
