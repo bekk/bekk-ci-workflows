@@ -10,9 +10,11 @@ on:
       TERRAFORM_VAR_FILE:
         required: false
         type: string
-    secrets:
-      SSH_PRIVATE_KEY:
-        required: true
+      AWS_REGION:
+        required: false
+        type: string
+        default: eu-central-1
+    secrets: inherit
 
 jobs:
   terraform:
@@ -29,13 +31,13 @@ jobs:
       - name: Set up SSH key for custom terraform module
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY }} #TODO: Denne burde kanskje samles igjen?
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${{ env.AWS_ACCOUNT_ID }}:role/tf_ci_basen_intern
-          aws-region: eu-central-1
+          role-to-assume: arn:aws:iam::${{ secrets.BEKK_BASEN_DEFAULT_AWS_ACCOUNT }}:role/tf_ci_basen_intern #TODO: Burde disse være inputs?
+          aws-region: inputs.AWS_REGION
 
       - name: Terraform Format
         working-directory: terraform
