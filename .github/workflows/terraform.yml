@@ -19,8 +19,9 @@ on:
         type: string
         default: ${{ github.repository }}
       AWS_ACCOUNT_ID:
-        required: true
+        required: false
         type: string
+        default: 882089634282
     secrets:
       BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY:
         required: true
