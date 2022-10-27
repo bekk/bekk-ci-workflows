@@ -14,6 +14,10 @@ on:
         required: false
         type: string
         default: eu-central-1
+      role_name:
+        required: false
+        type: string
+        default: ${{ github.repository }}
     secrets:
       BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY:
         required: true
@@ -41,7 +45,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${{ secrets.BEKK_BASEN_DEFAULT_AWS_ACCOUNT }}:role/tf_ci_basen_intern #TODO: Burde disse være inputs?
+          role-to-assume: arn:aws:iam::${{ secrets.BEKK_BASEN_DEFAULT_AWS_ACCOUNT }}:role/${{ inputs.role_name }} #TODO: Burde disse være inputs?
           aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Terraform Format
