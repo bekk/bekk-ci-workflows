@@ -29,6 +29,9 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set repository name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | sed 's/bekk\///'" >> $GITHUB_ENV
+
       - name: Checkout git repo
         uses: actions/checkout@v2
 
@@ -43,7 +46,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/tf_ci_lambda #TODO: Burde disse være inputs?
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/$REPO_NAME #TODO: Burde disse være inputs?
           aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Terraform Format
