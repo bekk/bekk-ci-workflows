@@ -46,7 +46,7 @@ jobs:
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
         with:
-          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/${{ env.REPO_NAME }} #TODO: Burde disse være inputs?
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/tf_ci_lambda_${{ env.REPO_NAME }}
           aws-region: ${{ inputs.AWS_REGION }}
 
       - name: Terraform Format
