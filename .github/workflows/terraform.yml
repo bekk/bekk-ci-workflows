@@ -38,6 +38,10 @@ jobs:
       - name: fetch artifacts
         uses: actions/download-artifact@v3
 
+      - name: unbox artifacts
+        run: |
+          mv artifacts/* .
+
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
