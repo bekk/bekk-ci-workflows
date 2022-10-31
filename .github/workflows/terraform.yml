@@ -41,6 +41,10 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
+      - name: list files
+        run: |
+          ls
+
       - name: Set up SSH key for custom terraform module
         uses: webfactory/ssh-agent@v0.5.4
         with:
