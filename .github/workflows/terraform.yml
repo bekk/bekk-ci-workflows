@@ -3,13 +3,6 @@ name: Terraform
 on:
   workflow_call:
     inputs:
-      TERRAFORM_WORKSPACE: # TODO: Dropp dette for Lambda
-        required: false
-        type: string
-        default: ""
-      TERRAFORM_VAR_FILE: # TODO: Dropp dette for Lambda
-        required: false
-        type: string
       AWS_REGION:
         required: false
         type: string
@@ -45,10 +38,6 @@ jobs:
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v1
 
-      - name: list files
-        run: |
-          ls
-
       - name: Set up SSH key for custom terraform module
         uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -75,29 +64,9 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-      - name: Set terraform workspace variable
-        id: tf-workspace
-        run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')" >> $GITHUB_ENV
-
-      - name: Create and change Terraform workspace
-        if: inputs.TERRAFORM_WORKSPACE != ''
-        working-directory: terraform
-        id: workspace
-        run: |
-          terraform workspace select $WORKSPACE \
-          || terraform workspace new $WORKSPACE
-
       - name: Deploy environment without vars
         if: inputs.TERRAFORM_VAR_FILE == ''
         working-directory: terraform
         id: deploy_without_vars
         run: |
-          terraform apply -auto-approve -no-color 
-
-      - name: Deploy environment with vars
-        if: inputs.TERRAFORM_VAR_FILE != ''
-        working-directory: terraform
-        id: deploy_with_vars
-        run: |
-          terraform apply -auto-approve -var-file ${{ inputs.TERRAFORM_VAR_FILE }} -no-color 
+          terraform apply -auto-approve -no-color  
