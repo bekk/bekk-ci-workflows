@@ -1,4 +1,4 @@
-name: Terraform
+name: Terraform Lambda
 
 on:
   workflow_call:
@@ -64,8 +64,7 @@ jobs:
         id: validate
         run: terraform validate -no-color
 
-      - name: Deploy environment without vars
-        if: inputs.TERRAFORM_VAR_FILE == ''
+      - name: Terraform Apply
         working-directory: terraform
         id: deploy_without_vars
         run: |
