@@ -1,0 +1,71 @@
+name: Terraform Lambda
+
+on:
+  workflow_call:
+    inputs:
+      AWS_REGION:
+        required: false
+        type: string
+        default: eu-central-1
+      AWS_ACCOUNT_ID:
+        required: false
+        type: string
+        default: 882089634282
+    secrets:
+      BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY:
+        required: true
+
+
+jobs:
+  terraform:
+    name: Run terraform
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set repository name
+        run: echo "REPO_NAME=$(echo ${{ github.repository }} | sed 's/bekk\///')" >> $GITHUB_ENV
+
+      - name: Checkout git repo
+        uses: actions/checkout@v2
+
+      - name: fetch artifacts
+        uses: actions/download-artifact@v3
+
+      - name: unbox artifacts
+        run: |
+          mv artifact/* .
+
+      - name: Set up Terraform
+        uses: hashicorp/setup-terraform@v1
+
+      - name: Set up SSH key for custom terraform module
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY }}
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v1
+        with:
+          role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/tf_ci_lambda_${{ env.REPO_NAME }}
+          aws-region: ${{ inputs.AWS_REGION }}
+
+      - name: Terraform Format
+        working-directory: terraform
+        id: fmt
+        run: terraform fmt -check
+
+      - name: Terraform Init
+        working-directory: terraform
+        id: init
+        run: terraform init
+
+      - name: Terraform Validate
+        working-directory: terraform
+        id: validate
+        run: terraform validate -no-color
+
+      - name: Terraform Apply
+        working-directory: terraform
+        id: deploy_without_vars
+        run: |
+          terraform apply -auto-approve -no-color  
