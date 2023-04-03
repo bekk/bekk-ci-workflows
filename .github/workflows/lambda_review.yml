@@ -12,7 +12,7 @@ on:
         type: string
         default: 882089634282
     secrets:
-      SSH_PRIVATE_KEY:
+      BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY:
         required: true
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
       - name: Set up SSH key for custom terraform module
         uses: webfactory/ssh-agent@v0.5.4
         with:
-          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+          ssh-private-key: ${{ secrets.BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY }}
 
       - name: Configure AWS credentials
         uses: aws-actions/configure-aws-credentials@v1
