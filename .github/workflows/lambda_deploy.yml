@@ -1,4 +1,4 @@
-name: Terraform Lambda
+name: Deploy Lambda
 
 on:
   workflow_call:
