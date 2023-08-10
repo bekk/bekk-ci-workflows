@@ -70,8 +70,7 @@ jobs:
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select $WORKSPACE \
-          || terraform workspace new $WORKSPACE
+          terraform workspace select -or-create $WORKSPACE
 
       - name: Deploy preview environment
         working-directory: terraform
