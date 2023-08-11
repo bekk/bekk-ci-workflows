@@ -39,10 +39,10 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
@@ -50,8 +50,10 @@ jobs:
           mask-aws-account-id: no
 
       - name: Login to Amazon ECR
-        uses: aws-actions/amazon-ecr-login@v1
         id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v1
+        with:
+          mask-password: 'true'
 
       - name: Build, tag, and push image to Amazon ECR
         if: github.event.action != 'closed'
@@ -67,5 +69,5 @@ jobs:
         env:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
         run: |
-          echo "::set-output name=image::$IMAGE"
-          echo "::set-output name=tag::${{ inputs.IMAGE_TAG }}"
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+          echo "tag=${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT

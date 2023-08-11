@@ -25,18 +25,18 @@ jobs:
         run: echo "REPO_NAME=$(echo ${{ github.repository }} | sed 's/bekk\///')" >> $GITHUB_ENV
         
       - name: Checkout git repo
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v1
+        uses: hashicorp/setup-terraform@v2
 
       - name: Set up SSH key for custom terraform module
-        uses: webfactory/ssh-agent@v0.5.4
+        uses: webfactory/ssh-agent@v0.8.0
         with:
           ssh-private-key: ${{ secrets.BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
+        uses: aws-actions/configure-aws-credentials@v2
         with:
           role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/tf_ci_lambda_${{ env.REPO_NAME }}
           aws-region: ${{ inputs.AWS_REGION }}
