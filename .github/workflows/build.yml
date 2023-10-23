@@ -11,10 +11,6 @@ on:
         required: false
         type: string
         default: ${{ github.event.repository.name }}
-      IMAGE_TAG:
-        required: false
-        type: string
-        default:  ${{ github.sha }}
     outputs:
       image_name:
         description: "Image name"
@@ -53,16 +49,28 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          mask-password: 'true'
+          mask-password: "true"
 
-      - name: Build, tag, and push image to Amazon ECR
-        if: github.event.action != 'closed'
-        id: build-image
-        env:
-          IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
-        run: |
-          docker build -t $IMAGE:${{ inputs.IMAGE_TAG }} .
-          docker push $IMAGE:${{ inputs.IMAGE_TAG }}
+      - name: Set image tag in ENV
+        run: |-
+          echo "IMAGE_TAG=$(
+          if ([ ${{ github.ref_name }} == main ] || [ ${{github.ref_name}} == master ]) && [ ${{github.event_name}} == push ]; then
+            echo DEV-${{ github.sha }}
+          elif ([ ${{ github.ref_name }} == main ] || [ ${{github.ref_name}} == master ]) && [ ${{github.event_name}} == release ] && [ ${{github.event.action}} == released ]; then
+            echo PROD-${{ github.ref }}
+          elif [ ${{github.event_name}} == pull_request ] && ([ ${{github.event.action}} == opened ] || [ ${{github.event.action}} == synchronize ] || [ ${{github.event.action}} == closed ]); then
+            echo PREVIEW-${{ github.sha }}
+          fi
+          )" >> $GITHUB_ENV
+
+      # - name: Build, tag, and push image to Amazon ECR
+      #   if: github.event.action != 'closed'
+      #   id: build-image
+      #   env:
+      #     IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
+      #   run: |
+      #     docker build -t $IMAGE:${{ inputs.IMAGE_TAG }} .
+      #     docker push $IMAGE:${{ inputs.IMAGE_TAG }}
 
       - name: Set outputs
         id: build-results
@@ -70,4 +78,4 @@ jobs:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
         run: |
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
-          echo "tag=${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT
+          echo "tag=${{ env.IMAGE_TAG }}" >> $GITHUB_OUTPUT
