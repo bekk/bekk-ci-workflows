@@ -51,13 +51,10 @@ jobs:
         with:
           mask-password: "true"
 
-      - name: Fail job
-        run: |-
-          exit 1
-
       - name: Set image tag in output
         id: "set-image-tag"
         run: |-
+          echo "test=$( exit 1 )"
           echo "image_tag=$(
           if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
             echo DEV-"${{ github.sha }}"
