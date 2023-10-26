@@ -30,7 +30,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.build-results.outputs.image }}
+      image: ${{ steps.set-image-name.outputs.image }}
       image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
 
     steps:
@@ -51,7 +51,7 @@ jobs:
         with:
           mask-password: "true"
 
-      - name: Set image tag in ENV
+      - name: Set image tag in output
         id: "set-image-tag"
         run: |-
           echo "image_tag=$(
@@ -82,10 +82,9 @@ jobs:
           docker build -t $IMAGE:$TAG .
           docker push $IMAGE:$TAG
 
-      - name: Set outputs
-        id: build-results
+      - name: Set image name in output
+        id: set-image-name
         env:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
-          TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
         run: |
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
