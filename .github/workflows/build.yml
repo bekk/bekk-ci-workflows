@@ -11,17 +11,13 @@ on:
         required: false
         type: string
         default: ${{ github.event.repository.name }}
-      IMAGE_TAG:
-        required: false
-        type: string
-        default:  ${{ github.sha }}
     outputs:
       image_name:
         description: "Image name"
         value: ${{ jobs.build.outputs.image }}
       image_tag:
         description: "Image tag"
-        value: ${{ jobs.build.outputs.tag }}
+        value: ${{ jobs.build.outputs.image_tag }}
 
     secrets:
       AWS_ACCESS_KEY_ID:
@@ -34,8 +30,8 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.build-results.outputs.image }}
-      tag: ${{ steps.build-results.outputs.tag }}
+      image: ${{ steps.set-image-name.outputs.image }}
+      image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
 
     steps:
       - name: Checkout
@@ -53,21 +49,42 @@ jobs:
         id: login-ecr
         uses: aws-actions/amazon-ecr-login@v1
         with:
-          mask-password: 'true'
+          mask-password: "true"
+
+      - name: Set image tag in output
+        id: "set-image-tag"
+        run: |-
+          echo "image_tag=$(
+          if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
+            echo DEV-"${{ github.sha }}"
+          elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
+            echo PROD-"${{ github.ref_name }}"
+          elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
+            echo PREVIEW-"${{ github.head_ref }}"
+          else
+            echo unknown
+          fi
+          )" >> $GITHUB_OUTPUT
+
+      - name: Fail job if unknown image tag
+        if: steps.set-image-tag.outputs.image_tag == 'unknown'
+        run: |-
+          echo "The event that triggered this workflow did not correspond to the known workflows for the different environments. Check the previous step."
+          exit 1
 
       - name: Build, tag, and push image to Amazon ECR
         if: github.event.action != 'closed'
         id: build-image
         env:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
+          TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
         run: |
-          docker build -t $IMAGE:${{ inputs.IMAGE_TAG }} .
-          docker push $IMAGE:${{ inputs.IMAGE_TAG }}
+          docker build -t $IMAGE:$TAG .
+          docker push $IMAGE:$TAG
 
-      - name: Set outputs
-        id: build-results
+      - name: Set image name in output
+        id: set-image-name
         env:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
         run: |
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
-          echo "tag=${{ inputs.IMAGE_TAG }}" >> $GITHUB_OUTPUT

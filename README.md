@@ -9,9 +9,11 @@ Build and push docker image to AWS ECR
 Inputs:
 - ECR_REPOSITORY
   default: ${{ github.event.repository.name }}
-- IMAGE_TAG
-  default: ${{ github.sha }}
 
+Outputs
+- image_name
+- image_tag
+  
 Secrets:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
