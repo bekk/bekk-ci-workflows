@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: ${{ github.event.repository.name }}
+      IMAGE_TAG:
+        required: false
+        type: string
+        default: ${{ github.sha }}
     outputs:
       image_name:
         description: "Image name"
