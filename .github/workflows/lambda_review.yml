@@ -25,10 +25,10 @@ jobs:
         run: echo "REPO_NAME=$(echo ${{ github.repository }} | sed 's/bekk\///')" >> $GITHUB_ENV
         
       - name: Checkout git repo
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up Terraform
-        uses: hashicorp/setup-terraform@v2
+        uses: hashicorp/setup-terraform@v3
 
       - name: Set up SSH key for custom terraform module
         uses: webfactory/ssh-agent@v0.8.0
@@ -36,7 +36,7 @@ jobs:
           ssh-private-key: ${{ secrets.BEKK_BASEN_TERRAFORM_LAMBDA_MODULE_SSH_PRIVATE_KEY }}
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::${{ inputs.AWS_ACCOUNT_ID }}:role/tf_ci_lambda_${{ env.REPO_NAME }}
           aws-region: ${{ inputs.AWS_REGION }}
@@ -65,7 +65,7 @@ jobs:
         continue-on-error: true
 
       - name: Update Pull Request
-        uses: actions/github-script@v6
+        uses: actions/github-script@v7
         if: github.event.action != 'closed'
         env:
           PLAN: "terraform\n${{ steps.plan.outputs.stdout }}"
