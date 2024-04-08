@@ -57,7 +57,7 @@ jobs:
         id: "set-image-tag"
         run: |-
           echo "image_tag=$(
-          if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
+          if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ] || [ "${{ github.ref_name }}" == "sandbox" ]) && [ "${{ github.event_name }}" == "push" ]; then
             echo DEV-"${{ github.sha }}"
           elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
             echo PROD-"${{ github.ref_name }}"
