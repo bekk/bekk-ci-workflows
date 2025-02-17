@@ -16,6 +16,10 @@ on:
         required: false
         type: string
         default: "dev.tfvars"
+      DIRECTORY:
+        required: false
+        type: string
+        default: .
     secrets:
       AWS_ACCESS_KEY_ID:
         required: true
@@ -47,17 +51,17 @@ jobs:
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile deploy
 
       - name: Terraform Format
-        working-directory: terraform
+        working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: fmt
         run: terraform fmt -check
 
       - name: Terraform Init
-        working-directory: terraform
+        working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: init
         run: terraform init
 
       - name: Terraform Validate
-        working-directory: terraform
+        working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: validate
         run: terraform validate -no-color
 
@@ -67,13 +71,13 @@ jobs:
           echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\//-/g')" >> $GITHUB_ENV
 
       - name: Create and change Terraform workspace
-        working-directory: terraform
+        working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: workspace
         run: |
           terraform workspace select -or-create $WORKSPACE
 
       - name: Deploy environment
-        working-directory: terraform
+        working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: deploy_review
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \

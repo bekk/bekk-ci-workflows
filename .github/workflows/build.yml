@@ -11,6 +11,10 @@ on:
         required: false
         type: string
         default: ${{ github.event.repository.name }}
+      DIRECTORY:
+        required: false
+        type: string
+        default: .
     outputs:
       image_name:
         description: "Image name"
@@ -54,11 +58,11 @@ jobs:
         run: |-
           echo "image_tag=$(
           if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
-            echo DEV-"${{ github.sha }}"
+            echo DEV-"${{ github.sha }}"-"${{ inputs.inputs.DIRECTORY }}"
           elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
-            echo PROD-"${{ github.ref_name }}"
+            echo PROD-"${{ github.ref_name }}"-"${{ inputs.inputs.DIRECTORY }}"
           elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
-            echo PREVIEW-"${{ github.head_ref }}"
+            echo PREVIEW-"${{ github.head_ref }}"-"${{ inputs.inputs.DIRECTORY }}"
           else
             echo unknown
           fi
