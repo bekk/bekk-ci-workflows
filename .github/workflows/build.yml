@@ -58,11 +58,11 @@ jobs:
         run: |-
           echo "image_tag=$(
           if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
-            echo DEV-"${{ github.sha }}"-"${{ inputs.inputs.DIRECTORY }}"
+            echo DEV-"${{ github.sha }}"-"${{ inputs.DIRECTORY }}"
           elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
-            echo PROD-"${{ github.ref_name }}"-"${{ inputs.inputs.DIRECTORY }}"
+            echo PROD-"${{ github.ref_name }}"-"${{ inputs.DIRECTORY }}"
           elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
-            echo PREVIEW-"${{ github.head_ref }}"-"${{ inputs.inputs.DIRECTORY }}"
+            echo PREVIEW-"${{ github.head_ref }}"-"${{ inputs.DIRECTORY }}"
           else
             echo unknown
           fi
@@ -81,7 +81,7 @@ jobs:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
           TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
         run: |
-          docker build -t $IMAGE:$TAG .
+          docker build -t $IMAGE:$TAG ${{ inputs.DIRECTORY }}
           docker push $IMAGE:$TAG
 
       - name: Set image name in output
