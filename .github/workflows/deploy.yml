@@ -50,6 +50,11 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile deploy
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile deploy
 
+      - name: Log inputs
+        env:
+          INPUTS: ${{ toJson(inputs) }}
+        run: echo "$INPUTS"
+
       - name: Terraform Format
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: fmt

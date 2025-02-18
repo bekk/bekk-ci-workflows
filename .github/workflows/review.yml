@@ -60,6 +60,11 @@ jobs:
         id: init
         run: terraform init
 
+      - name: Log inputs
+        env:
+          INPUTS: ${{ toJson(inputs) }}
+        run: echo "$INPUTS"
+
       - name: Terraform Validate
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: validate
