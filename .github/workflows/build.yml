@@ -90,3 +90,20 @@ jobs:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
         run: |
           echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Write artifact file
+        id: write-artifact-file
+        env:
+          IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
+          TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
+        run: |-
+          echo "IMAGE_NAME=$IMAGE
+          IMAGE_TAG=$TAG" > /tmp/image-data.txt
+
+      - name: Upload artifact for multi-project build
+        id: multi-project-artifact-upload
+        uses: actions/upload-artifact@v4
+        with:
+          path: /tmp/image-data.txt
+          overwrite: true
+          name: build.outputs.${{ inputs.DIRECTORY }}

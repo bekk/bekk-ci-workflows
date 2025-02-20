@@ -82,6 +82,21 @@ jobs:
         run: |
           terraform workspace select -or-create $WORKSPACE
 
+      - name: Download build output
+        uses: actions/download-artifact@v4
+        id: download-build-output
+        with:
+          name: build.outputs.${{ inputs.DIRECTORY }}
+          path: /tmp/outputs/
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Parse build output
+        id: parse-build-output
+        run: |-
+          echo ${{ steps.download-build-output.outputs.download-path }}/image-data.txt
+          cat ${{ steps.download-build-output.outputs.download-path }}/image-data.txt
+          cat ${{ steps.download-build-output.outputs.download-path }}/image-data.txt >> $GITHUB_OUTPUT
+
       - name: Deploy preview environment
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: deploy-preview
@@ -90,8 +105,8 @@ jobs:
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
-            -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+            -var "task_image=${{ steps.parse-build-output.outputs.IMAGE_NAME }}" \
+            -var "task_image_tag=${{ steps.parse-build-output.outputs.IMAGE_TAG }}"
 
       - name: Get deployment url for preview environment
         working-directory: ${{ inputs.DIRECTORY }}/terraform
