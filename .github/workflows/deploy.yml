@@ -73,7 +73,7 @@ jobs:
       - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }}-${{ inputs.DIRECTORY }} | sed -e 's/\//-/g')" >> $GITHUB_ENV
+          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }}-${{ inputs.DIRECTORY }} | sed -e 's/\//-/g' -e 's/\.//g')" >> $GITHUB_ENV
 
       - name: Create and change Terraform workspace
         working-directory: ${{ inputs.DIRECTORY }}/terraform
@@ -85,8 +85,9 @@ jobs:
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: deploy_review
         env:
-          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}${{ inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY) || '' }}
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}${{ (inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY)) || '' }}
         run: |
+          echo $IMAGE_NAME
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
             -var "task_image=$IMAGE_NAME" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"

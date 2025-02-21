@@ -88,6 +88,6 @@ jobs:
         id: set-image-name
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_NAME: ${{ inputs.ECR_REPOSITORY }}${{ matrix.DIRECTORY != '.' && format('-{0}', matrix.DIRECTORY) || '' }}
+          IMAGE_NAME: ${{ inputs.ECR_REPOSITORY }}
         run: |
           echo "image_name=$REGISTRY/$IMAGE_NAME" >> $GITHUB_OUTPUT
