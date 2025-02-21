@@ -18,7 +18,7 @@ on:
     outputs:
       image_name:
         description: "Image name"
-        value: ${{ jobs.build.outputs.image }}
+        value: ${{ jobs.build.outputs.image_name }}
       image_tag:
         description: "Image tag"
         value: ${{ jobs.build.outputs.image_tag }}
@@ -34,7 +34,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      image_registry: ${{ steps.set-image-registry.outputs.image_registry }}
+      image_name: ${{ steps.set-image-name.outputs.image_name }}
       image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
 
     steps:
@@ -84,9 +84,10 @@ jobs:
           docker build -t $IMAGE:$TAG ${{ inputs.DIRECTORY }}
           docker push $IMAGE:$TAG
 
-      - name: Set image registry in output
-        id: set-image-registry
+      - name: Set image name in output
+        id: set-image-name
         env:
-          IMAGE: "${{ steps.login-ecr.outputs.registry }}"
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+          IMAGE_NAME: ${{ inputs.ECR_REPOSITORY }}${{ matrix.DIRECTORY != '.' && format('-{0}', matrix.DIRECTORY) || '' }}
         run: |
-          echo "image_registry=$REGISTRY" >> $GITHUB_OUTPUT
+          echo "image_name=$REGISTRY/$IMAGE_NAME" >> $GITHUB_OUTPUT

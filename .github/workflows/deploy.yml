@@ -84,7 +84,9 @@ jobs:
       - name: Deploy environment
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: deploy_review
+        env:
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}${{ inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY) || '' }}
         run: |
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
+            -var "task_image=$IMAGE_NAME" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
