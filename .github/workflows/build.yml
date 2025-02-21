@@ -74,20 +74,20 @@ jobs:
           echo "The event that triggered this workflow did not correspond to the known workflows for the different environments. Check the previous step."
           exit 1
 
-      - name: Build, tag, and push image to Amazon ECR
-        if: github.event.action != 'closed'
-        id: build-image
-        env:
-          IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
-          TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
-        run: |
-          docker build -t $IMAGE:$TAG ${{ inputs.DIRECTORY }}
-          docker push $IMAGE:$TAG
-
       - name: Set image name in output
         id: set-image-name
         env:
           REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          IMAGE_NAME: ${{ inputs.ECR_REPOSITORY }}
+          IMAGE_NAME: ${{ inputs.ECR_REPOSITORY }}${{ (inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY)) || '' }}
         run: |
           echo "image_name=$REGISTRY/$IMAGE_NAME" >> $GITHUB_OUTPUT
+
+      - name: Build, tag, and push image to Amazon ECR
+        if: github.event.action != 'closed'
+        id: build-image
+        env:
+          IMAGE: ${{ steps.set-image-name.outputs.image_name }}
+          TAG: ${{ steps.set-image-tag.outputs.image_tag }}
+        run: |
+          docker build -t $IMAGE:$TAG ${{ inputs.DIRECTORY }}
+          docker push $IMAGE:$TAG
