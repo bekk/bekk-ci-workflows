@@ -50,11 +50,6 @@ jobs:
           aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile deploy
           aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile deploy
 
-      - name: Log inputs
-        env:
-          INPUTS: ${{ toJson(inputs) }}
-        run: echo "$INPUTS"
-
       - name: Terraform Format
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: fmt
@@ -73,7 +68,7 @@ jobs:
       - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }}-${{ inputs.DIRECTORY }} | sed -e 's/\//-/g' -e 's/\.//g')" >> $GITHUB_ENV
+          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }}${{ (inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY)) || '' }} | sed -e 's/\//-/g')" >> $GITHUB_ENV
 
       - name: Create and change Terraform workspace
         working-directory: ${{ inputs.DIRECTORY }}/terraform
