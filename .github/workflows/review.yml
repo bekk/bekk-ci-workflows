@@ -85,11 +85,14 @@ jobs:
         working-directory: ${{ inputs.DIRECTORY }}/terraform
         id: deploy-preview
         if: github.event.action != 'closed'
+        env:
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}${{ (inputs.DIRECTORY != '.' && format('-{0}', inputs.DIRECTORY)) || '' }}
         run: |
+          echo $IMAGE_NAME
           terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
+            -var "task_image=$IMAGE_NAME" \
             -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
 
       - name: Get deployment url for preview environment
