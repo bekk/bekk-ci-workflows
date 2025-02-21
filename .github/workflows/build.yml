@@ -34,7 +34,7 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     outputs:
-      image: ${{ steps.set-image-name.outputs.image }}
+      image_registry: ${{ steps.set-image-registry.outputs.image_registry }}
       image_tag: ${{ steps.set-image-tag.outputs.image_tag }}
 
     steps:
@@ -58,11 +58,11 @@ jobs:
         run: |-
           echo "image_tag=$(
           if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
-            echo DEV-"${{ github.sha }}"-"${{ inputs.DIRECTORY }}"
+            echo DEV-"${{ github.sha }}"
           elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
-            echo PROD-"${{ github.ref_name }}"-"${{ inputs.DIRECTORY }}"
+            echo PROD-"${{ github.ref_name }}"
           elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
-            echo PREVIEW-"${{ github.head_ref }}"-"${{ inputs.DIRECTORY }}"
+            echo PREVIEW-"${{ github.head_ref }}"
           else
             echo unknown
           fi
@@ -84,26 +84,9 @@ jobs:
           docker build -t $IMAGE:$TAG ${{ inputs.DIRECTORY }}
           docker push $IMAGE:$TAG
 
-      - name: Set image name in output
-        id: set-image-name
+      - name: Set image registry in output
+        id: set-image-registry
         env:
-          IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
+          IMAGE: "${{ steps.login-ecr.outputs.registry }}"
         run: |
-          echo "image=$IMAGE" >> $GITHUB_OUTPUT
-
-      - name: Write artifact file
-        id: write-artifact-file
-        env:
-          IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
-          TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
-        run: |-
-          echo "IMAGE_NAME=$IMAGE
-          IMAGE_TAG=$TAG" > /tmp/image-data.txt
-
-      - name: Upload artifact for multi-project build
-        id: multi-project-artifact-upload
-        uses: actions/upload-artifact@v4
-        with:
-          path: /tmp/image-data.txt
-          overwrite: true
-          name: build.outputs.${{ inputs.DIRECTORY }}
+          echo "image_registry=$REGISTRY" >> $GITHUB_OUTPUT
