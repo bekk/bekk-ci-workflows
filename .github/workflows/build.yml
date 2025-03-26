@@ -75,18 +75,19 @@ jobs:
 
       - name: Define build args
         if: inputs.BUILD_ARGS != ''
+        id: define-build-args
         env:
           ARGS: "${{ inputs.BUILD_ARGS }}"
         run: |
-          echo "$ARGS"
-          echo -n "$ARGS" | while read arg; do [ -n "$arg" ] && echo -n "--build-arg $arg "; done || echo failed
-          echo $?
+          echo "BUILD_ARGS=$(echo -n "$ARGS" | while read arg; do echo -n "--build-arg $arg "; done)" >> $GITHUB_ENV
+
       - name: Build, tag, and push image to Amazon ECR
         if: github.event.action != 'closed'
         id: build-image
         env:
           IMAGE: "${{ steps.login-ecr.outputs.registry }}/${{ inputs.ECR_REPOSITORY }}"
           TAG: "${{ steps.set-image-tag.outputs.image_tag }}"
+          BUILD_ARGS: "${{ env.BUILD_ARGS }}"
         run: |
           docker build -t $IMAGE:$TAG $BUILD_ARGS .
           docker push $IMAGE:$TAG
