@@ -79,7 +79,7 @@ jobs:
           ARGS: "${{ inputs.BUILD_ARGS }}"
         run: |
           echo "$ARGS"
-          echo "$ARGS" | while read arg; do [ -n "$arg" ] && echo -n "--build-arg $arg "; done || echo failed
+          echo -n "$ARGS" | while read arg; do [ -n "$arg" ] && echo -n "--build-arg $arg "; done || echo failed
           echo $?
       - name: Build, tag, and push image to Amazon ECR
         if: github.event.action != 'closed'
