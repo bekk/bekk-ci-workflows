@@ -75,7 +75,10 @@ jobs:
 
       - name: Define build args
         if: inputs.BUILD_ARGS != ''
+        env:
+          ARGS: "${{ inputs.BUILD_ARGS }}"
         run: |
+          echo "$ARGS"
           BUILD_ARGS="$(echo "$ARGS" | while read arg; do [ -n "$arg" ] && echo "--build-arg $arg"; done)"
 
       - name: Build, tag, and push image to Amazon ECR
