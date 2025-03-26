@@ -78,7 +78,6 @@ jobs:
         env:
           ARGS: "${{ inputs.BUILD_ARGS }}"
         run: |
-#          echo "$ARGS"
           echo "$ARGS" | while read arg; do [ -n "$arg" ] && echo "--build-arg $arg"; done
 
       - name: Build, tag, and push image to Amazon ECR
