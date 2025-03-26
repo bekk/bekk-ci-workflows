@@ -80,6 +80,7 @@ jobs:
         run: |
           echo "$ARGS"
           echo "$ARGS" | while read arg; do [ -n "$arg" ] && echo -n "--build-arg $arg "; done
+          echo $?
       - name: Build, tag, and push image to Amazon ECR
         if: github.event.action != 'closed'
         id: build-image
