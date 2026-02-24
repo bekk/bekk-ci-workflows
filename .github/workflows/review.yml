@@ -28,6 +28,9 @@ jobs:
   terraform:
     name: Run terraform
     runs-on: ubuntu-latest
+    concurrency:
+      group: terraform-${{ github.repository }}-${{ github.head_ref }}
+      cancel-in-progress: false
 
     steps:
       - name: Checkout git repo
