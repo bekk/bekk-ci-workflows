@@ -26,7 +26,9 @@ jobs:
 
     steps:
       - name: Set repository name
-        run: echo "REPO_NAME=$(echo ${{ github.repository }} | sed 's/bekk\///')" >> $GITHUB_ENV
+        env:
+          GITHUB_REPOSITORY_VALUE: ${{ github.repository }}
+        run: printf 'REPO_NAME=%s\n' "$(printf '%s' "$GITHUB_REPOSITORY_VALUE" | sed 's/bekk\///')" >> "$GITHUB_ENV"
 
       - name: Checkout git repo
         uses: actions/checkout@v4

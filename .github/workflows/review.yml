@@ -45,9 +45,12 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Add profile credentials to ~/.aws/credentials
+        env:
+          AWS_ACCESS_KEY_ID_VALUE: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY_VALUE: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile deploy
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile deploy
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID_VALUE" --profile deploy
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY_VALUE" --profile deploy
 
       - name: Terraform Format
         working-directory: terraform
@@ -66,8 +69,10 @@ jobs:
 
       - name: Set terraform workspace variable
         id: tf-workspace
+        env:
+          TERRAFORM_WORKSPACE_VALUE: ${{ inputs.TERRAFORM_WORKSPACE }}
         run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\/\|_/-/g' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          printf 'WORKSPACE=%s\n' "$(printf '%s' "$TERRAFORM_WORKSPACE_VALUE" | sed 's/\/\|_/-/g' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
@@ -79,12 +84,16 @@ jobs:
         working-directory: terraform
         id: deploy-preview
         if: github.event.action != 'closed'
+        env:
+          TERRAFORM_VAR_FILE_VALUE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME_VALUE: ${{ inputs.IMAGE_NAME }}
+          IMAGE_TAG_VALUE: ${{ inputs.IMAGE_TAG }}
         run: |
-          terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
+          terraform apply -auto-approve -var-file "$TERRAFORM_VAR_FILE_VALUE" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
-            -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+            -var "task_image=$IMAGE_NAME_VALUE" \
+            -var "task_image_tag=$IMAGE_TAG_VALUE"
 
       - name: Get deployment url for preview environment
         working-directory: terraform
@@ -97,12 +106,16 @@ jobs:
         working-directory: terraform
         id: teardown-preview
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
+        env:
+          TERRAFORM_VAR_FILE_VALUE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME_VALUE: ${{ inputs.IMAGE_NAME }}
+          IMAGE_TAG_VALUE: ${{ inputs.IMAGE_TAG }}
         run: |
-          terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
+          terraform destroy -auto-approve -var-file "$TERRAFORM_VAR_FILE_VALUE" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
-            -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+            -var "task_image=$IMAGE_NAME_VALUE" \
+            -var "task_image_tag=$IMAGE_TAG_VALUE"
           terraform workspace select dev
           terraform workspace delete $WORKSPACE
 
@@ -118,9 +131,12 @@ jobs:
         working-directory: terraform
         id: plan-merge
         if: github.event.action != 'closed'
+        env:
+          TERRAFORM_VAR_FILE_VALUE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME_VALUE: ${{ inputs.IMAGE_NAME }}
         run: |
-          terraform plan -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
+          terraform plan -var-file "$TERRAFORM_VAR_FILE_VALUE" -no-color \
+            -var "task_image=$IMAGE_NAME_VALUE" \
             -var "task_image_tag=latest"
         continue-on-error: true
 
