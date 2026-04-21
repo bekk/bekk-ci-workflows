@@ -74,6 +74,7 @@ jobs:
         run: |
           WORKSPACE="$(printf '%s' "$TERRAFORM_WORKSPACE" \
             | tr '[:upper:]' '[:lower:]' \
+            | tr '\r\n' '-' \
             | sed -E 's|[^a-z0-9-]+|-|g; s/^-+//; s/-+$//; s/-+/-/g')"
 
           if [ -z "$WORKSPACE" ]; then
