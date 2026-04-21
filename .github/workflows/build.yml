@@ -51,6 +51,12 @@ jobs:
 
       - name: Set image tag in output
         id: "set-image-tag"
+        env:
+          GITHUB_REF_NAME_SAFE: ${{ github.ref_name }}
+          GITHUB_HEAD_REF_SAFE: ${{ github.head_ref }}
+          GITHUB_EVENT_NAME_SAFE: ${{ github.event_name }}
+          GITHUB_EVENT_ACTION_SAFE: ${{ github.event.action }}
+          GITHUB_SHA_SAFE: ${{ github.sha }}
         run: |-
           sanitize_tag_part() {
             printf '%s' "$1" \
@@ -58,20 +64,22 @@ jobs:
               | sed -E 's|[^a-z0-9._-]+|-|g; s/[-.]+$//; s/^[-.]+//; s/-+/-/g'
           }
 
-          REF_NAME="$(sanitize_tag_part "${{ github.ref_name }}")"
-          HEAD_REF="$(sanitize_tag_part "${{ github.head_ref }}")"
+          REF_NAME="$(sanitize_tag_part "$GITHUB_REF_NAME_SAFE")"
+          HEAD_REF="$(sanitize_tag_part "$GITHUB_HEAD_REF_SAFE")"
 
-          echo "image_tag=$(
-          if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
-            echo DEV-"${{ github.sha }}"
-          elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
-            echo PROD-"${REF_NAME}"
-          elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
-            echo PREVIEW-"${HEAD_REF}"
+          IMAGE_TAG="$(
+          if ([ "$GITHUB_REF_NAME_SAFE" == "main" ] || [ "$GITHUB_REF_NAME_SAFE" == "master" ]) && [ "$GITHUB_EVENT_NAME_SAFE" == "push" ]; then
+            printf 'DEV-%s' "$GITHUB_SHA_SAFE"
+          elif [ "$GITHUB_EVENT_NAME_SAFE" == "release" ] && [ "$GITHUB_EVENT_ACTION_SAFE" == "released" ]; then
+            printf 'PROD-%s' "$REF_NAME"
+          elif [ "$GITHUB_EVENT_NAME_SAFE" == "pull_request" ] && ([ "$GITHUB_EVENT_ACTION_SAFE" == "opened" ] || [ "$GITHUB_EVENT_ACTION_SAFE" == "synchronize" ] || [ "$GITHUB_EVENT_ACTION_SAFE" == "closed" ]); then
+            printf 'PREVIEW-%s' "$HEAD_REF"
           else
-            echo unknown
+            printf 'unknown'
           fi
-          )" >> $GITHUB_OUTPUT
+          )"
+
+          printf 'image_tag=%s\n' "$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Fail job if unknown image tag
         if: steps.set-image-tag.outputs.image_tag == 'unknown'
