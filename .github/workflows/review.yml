@@ -73,7 +73,7 @@ jobs:
           sanitize_tag_part() {
             printf '%s' "$1" \
               | tr '[:upper:]' '[:lower:]' \
-              | sed -E 's|[^a-z0-9._-]+|-|g; s/[-.]+$//; s/^[-.]+//; s/-+/-/g'
+              | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
           }
 
           printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "${{ inputs.TERRAFORM_WORKSPACE }}")" >> "$GITHUB_ENV"
