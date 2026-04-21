@@ -69,6 +69,8 @@ jobs:
 
       - name: Set terraform workspace variable
         id: tf-workspace
+        env:
+          TERRAFORM_WORKSPACE: ${{ inputs.TERRAFORM_WORKSPACE }}
         run: |
           sanitize_tag_part() {
             printf '%s' "$1" \
@@ -76,7 +78,7 @@ jobs:
               | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
           }
 
-          printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "${{ inputs.TERRAFORM_WORKSPACE }}")" >> "$GITHUB_ENV"
+          printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "$TERRAFORM_WORKSPACE")" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
