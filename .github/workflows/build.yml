@@ -51,18 +51,35 @@ jobs:
 
       - name: Set image tag in output
         id: "set-image-tag"
+        env:
+          GITHUB_REF_NAME: ${{ github.ref_name }}
+          GITHUB_HEAD_REF: ${{ github.head_ref }}
+          GITHUB_EVENT_NAME: ${{ github.event_name }}
+          GITHUB_EVENT_ACTION: ${{ github.event.action }}
+          GITHUB_SHA: ${{ github.sha }}
         run: |-
-          echo "image_tag=$(
-          if ([ "${{ github.ref_name }}" == "main" ] || [ "${{ github.ref_name }}" == "master" ]) && [ "${{ github.event_name }}" == "push" ]; then
-            echo DEV-"${{ github.sha }}"
-          elif [ "${{ github.event_name }}" == "release" ] && [ "${{ github.event.action }}" == "released" ]; then
-            echo PROD-"${{ github.ref_name }}"
-          elif [ "${{ github.event_name }}" == "pull_request" ] && ([ "${{ github.event.action }}" == "opened" ] || [ "${{ github.event.action }}" == "synchronize" ] || [ "${{ github.event.action }}" == "closed" ]); then
-            echo PREVIEW-"${{ github.head_ref }}"
+          sanitize_tag_part() {
+            printf '%s' "$1" \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
+          }
+
+          REF_NAME="$(sanitize_tag_part "$GITHUB_REF_NAME")"
+          HEAD_REF="$(sanitize_tag_part "$GITHUB_HEAD_REF")"
+
+          IMAGE_TAG="$(
+          if ([ "$GITHUB_REF_NAME" == "main" ] || [ "$GITHUB_REF_NAME" == "master" ]) && [ "$GITHUB_EVENT_NAME" == "push" ]; then
+            printf 'DEV-%s' "$GITHUB_SHA"
+          elif [ "$GITHUB_EVENT_NAME" == "release" ] && [ "$GITHUB_EVENT_ACTION" == "released" ]; then
+            printf 'PROD-%s' "$REF_NAME"
+          elif [ "$GITHUB_EVENT_NAME" == "pull_request" ] && ([ "$GITHUB_EVENT_ACTION" == "opened" ] || [ "$GITHUB_EVENT_ACTION" == "synchronize" ] || [ "$GITHUB_EVENT_ACTION" == "closed" ]); then
+            printf 'PREVIEW-%s' "$HEAD_REF"
           else
-            echo unknown
+            printf 'unknown'
           fi
-          )" >> $GITHUB_OUTPUT
+          )"
+
+          printf 'image_tag=%s\n' "$IMAGE_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Fail job if unknown image tag
         if: steps.set-image-tag.outputs.image_tag == 'unknown'

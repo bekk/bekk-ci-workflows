@@ -45,9 +45,12 @@ jobs:
           ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
 
       - name: Add profile credentials to ~/.aws/credentials
+        env:
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         run: |
-          aws configure set aws_access_key_id ${{ secrets.AWS_ACCESS_KEY_ID }} --profile deploy
-          aws configure set aws_secret_access_key ${{ secrets.AWS_SECRET_ACCESS_KEY }} --profile deploy
+          aws configure set aws_access_key_id "$AWS_ACCESS_KEY_ID" --profile deploy
+          aws configure set aws_secret_access_key "$AWS_SECRET_ACCESS_KEY" --profile deploy
 
       - name: Terraform Format
         working-directory: terraform
@@ -67,24 +70,34 @@ jobs:
       - name: Set terraform workspace variable
         id: tf-workspace
         run: |
-          echo "WORKSPACE=$(echo ${{ inputs.TERRAFORM_WORKSPACE }} | sed 's/\/\|_/-/g' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+          sanitize_tag_part() {
+            printf '%s' "$1" \
+              | tr '[:upper:]' '[:lower:]' \
+              | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
+          }
+
+          printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "${{ inputs.TERRAFORM_WORKSPACE }}")" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select -or-create $WORKSPACE
+          terraform workspace select -or-create "$WORKSPACE"
 
       - name: Deploy preview environment
         working-directory: terraform
         id: deploy-preview
         if: github.event.action != 'closed'
+        env:
+          TERRAFORM_VAR_FILE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
+          IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
         run: |
-          terraform apply -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
+          terraform apply -auto-approve -var-file "$TERRAFORM_VAR_FILE" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
-            -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+            -var "task_image=$IMAGE_NAME" \
+            -var "task_image_tag=$IMAGE_TAG"
 
       - name: Get deployment url for preview environment
         working-directory: terraform
@@ -97,14 +110,18 @@ jobs:
         working-directory: terraform
         id: teardown-preview
         if: github.event.action == 'closed' || github.event.pull_request.merged == true
+        env:
+          TERRAFORM_VAR_FILE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
+          IMAGE_TAG: ${{ inputs.IMAGE_TAG }}
         run: |
-          terraform destroy -auto-approve -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
+          terraform destroy -auto-approve -var-file "$TERRAFORM_VAR_FILE" -no-color \
             -var "preview_name=$WORKSPACE" \
             -var "create_dns_record=true" \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
-            -var "task_image_tag=${{ inputs.IMAGE_TAG }}"
+            -var "task_image=$IMAGE_NAME" \
+            -var "task_image_tag=$IMAGE_TAG"
           terraform workspace select dev
-          terraform workspace delete $WORKSPACE
+          terraform workspace delete "$WORKSPACE"
 
       - name: Create and change Terraform workspace for dev
         working-directory: terraform
@@ -118,9 +135,12 @@ jobs:
         working-directory: terraform
         id: plan-merge
         if: github.event.action != 'closed'
+        env:
+          TERRAFORM_VAR_FILE: ${{ inputs.TERRAFORM_VAR_FILE }}
+          IMAGE_NAME: ${{ inputs.IMAGE_NAME }}
         run: |
-          terraform plan -var-file "${{ inputs.TERRAFORM_VAR_FILE }}" -no-color \
-            -var "task_image=${{ inputs.IMAGE_NAME }}" \
+          terraform plan -var-file "$TERRAFORM_VAR_FILE" -no-color \
+            -var "task_image=$IMAGE_NAME" \
             -var "task_image_tag=latest"
         continue-on-error: true
 
