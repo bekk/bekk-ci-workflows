@@ -72,13 +72,22 @@ jobs:
         env:
           TERRAFORM_WORKSPACE: ${{ inputs.TERRAFORM_WORKSPACE }}
         run: |
-          printf 'WORKSPACE=%s\n' "$(printf '%s' "$TERRAFORM_WORKSPACE" | sed 's/\//-/g')" >> "$GITHUB_ENV"
+          WORKSPACE="$(printf '%s' "$TERRAFORM_WORKSPACE" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's|[^a-z0-9-]+|-|g; s/^-+//; s/-+$//; s/-+/-/g')"
+
+          if [ -z "$WORKSPACE" ]; then
+            printf '%s\n' 'Invalid terraform workspace name after sanitization' >&2
+            exit 1
+          fi
+
+          printf 'WORKSPACE=%s\n' "$WORKSPACE" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select -or-create $WORKSPACE
+          terraform workspace select -or-create "$WORKSPACE"
 
       - name: Deploy environment
         working-directory: terraform

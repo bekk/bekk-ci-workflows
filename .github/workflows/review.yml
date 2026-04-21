@@ -72,13 +72,22 @@ jobs:
         env:
           TERRAFORM_WORKSPACE: ${{ inputs.TERRAFORM_WORKSPACE }}
         run: |
-          printf 'WORKSPACE=%s\n' "$(printf '%s' "$TERRAFORM_WORKSPACE" | sed 's/\/\|_/-/g' | tr '[:upper:]' '[:lower:]')" >> "$GITHUB_ENV"
+          WORKSPACE="$(printf '%s' "$TERRAFORM_WORKSPACE" \
+            | tr '[:upper:]' '[:lower:]' \
+            | sed -E 's|[^a-z0-9-]+|-|g; s/^-+//; s/-+$//; s/-+/-/g')"
+
+          if [ -z "$WORKSPACE" ]; then
+            printf '%s\n' 'Invalid terraform workspace name after sanitization' >&2
+            exit 1
+          fi
+
+          printf 'WORKSPACE=%s\n' "$WORKSPACE" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
         id: workspace
         run: |
-          terraform workspace select -or-create $WORKSPACE
+          terraform workspace select -or-create "$WORKSPACE"
 
       - name: Deploy preview environment
         working-directory: terraform
@@ -117,7 +126,7 @@ jobs:
             -var "task_image=$IMAGE_NAME" \
             -var "task_image_tag=$IMAGE_TAG"
           terraform workspace select dev
-          terraform workspace delete $WORKSPACE
+          terraform workspace delete "$WORKSPACE"
 
       - name: Create and change Terraform workspace for dev
         working-directory: terraform
