@@ -69,6 +69,8 @@ jobs:
 
       - name: Set terraform workspace variable
         id: tf-workspace
+        env:
+          TERRAFORM_WORKSPACE: ${{ inputs.TERRAFORM_WORKSPACE }}
         run: |
           sanitize_tag_part() {
             printf '%s' "$1" \
