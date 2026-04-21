@@ -78,13 +78,7 @@ jobs:
               | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
           }
 
-          if [ "$TERRAFORM_WORKSPACE" = '$GITHUB_HEAD_REF' ]; then
-            unsanitized_workspace_name="$GITHUB_HEAD_REF"
-          else
-            unsanitized_workspace_name="$TERRAFORM_WORKSPACE"
-          fi
-
-          printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "$unsanitized_workspace_name")" >> "$GITHUB_ENV"
+          printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "$TERRAFORM_WORKSPACE")" >> "$GITHUB_ENV"
 
       - name: Create and change Terraform workspace
         working-directory: terraform
