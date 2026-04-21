@@ -78,11 +78,14 @@ jobs:
               | sed -E 's|[^a-z0-9-]+|-|g; s/-+$//; s/^-+//; s/-+/-/g'
           }
 
+          printf '::notice::tfw %s\n' "$TERRAFORM_WORKSPACE"
+          printf '::notice::gh %s\n' "$GITHUB_HEAD_REF"
           if [ "$TERRAFORM_WORKSPACE" = '$GITHUB_HEAD_REF' ]; then
             unsanitized_workspace_name="$GITHUB_HEAD_REF"
           else
             unsanitized_workspace_name="$TERRAFORM_WORKSPACE"
           fi
+          printf '::notice::%s\n' "$unsanitized_workspace_name"
 
           printf 'WORKSPACE=%s\n' "$(sanitize_tag_part "$unsanitized_workspace_name")" >> "$GITHUB_ENV"
 
