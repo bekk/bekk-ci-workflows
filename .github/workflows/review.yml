@@ -112,7 +112,7 @@ jobs:
         id: deploy-url
         if: github.event.action != 'closed'
         run: |
-          terraform output -raw -no-color URL | head -1
+          terraform output -raw -no-color URL 2>/dev/null | head -1
 
       - name: Teardown preview environment
         working-directory: terraform
