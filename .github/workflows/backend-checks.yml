@@ -1,0 +1,36 @@
+name: Backend checks
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        required: false
+        default: "."
+      format-check:
+        description: "Enable to run format check, currently using csharpier. Before enabling this check, make sure you have installed csharpier as a dotnet tool (`dotnet tool install csharpier`)."
+        type: boolean
+        required: true
+      dotnet-test:
+        description: "Enable to run `dotnet test`. Before enabling this check, make sure you have a test project in the solution with at least 1 test."
+        type: boolean
+        required: true
+
+jobs:
+  backend-checks:
+    name: format · test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Run format-check
+        if: ${{ !cancelled() && inputs.format-check }}
+        working-directory: ${{ inputs.working-directory }}
+        run: |
+          dotnet tool restore
+          dotnet csharpier check .
+
+      - name: Run dotnet-test
+        if: ${{ !cancelled() && inputs.dotnet-test }}
+        working-directory: ${{ inputs.working-directory }}
+        run: dotnet test

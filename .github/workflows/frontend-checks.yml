@@ -1,0 +1,47 @@
+name: Frontend checks
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        type: string
+        required: false
+        default: "."
+      format-check:
+        description: "Enable to run `npm run format-check`. Before enabling this check, make sure you have set up the `format-check` script in package.json."
+        type: boolean
+        required: true
+      lint-check:
+        description: "Enable to run `npm run lint-check`. Before enabling this check, make sure you have set up the `lint-check` script in package.json."
+        type: boolean
+        required: true
+      type-check:
+        description: "Enable to run `npm run type-check`. Before enabling this check, make sure you have set up the `type-check` script in package.json."
+        type: boolean
+        required: true
+
+jobs:
+  frontend-checks:
+    name: format · lint · type
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Install dependencies
+        working-directory: ${{ inputs.working-directory }}
+        run: npm ci
+
+      - name: Run format-check
+        if: ${{ !cancelled() && inputs.format-check }}
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run format-check
+
+      - name: Run lint-check
+        if: ${{ !cancelled() && inputs.lint-check }}
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run lint-check
+
+      - name: Run type-check
+        if: ${{ !cancelled() && inputs.type-check }}
+        working-directory: ${{ inputs.working-directory }}
+        run: npm run type-check
