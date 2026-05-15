@@ -26,6 +26,7 @@ on:
 
 jobs:
   terraform:
+    environment: ${{ inputs.TERRAFORM_WORKSPACE }}
     name: Run terraform
     runs-on: ubuntu-latest
     concurrency:
