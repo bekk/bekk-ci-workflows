@@ -46,6 +46,12 @@ Secrets:
 - AWS_SECRET_ACCESS_KEY
 - SSH_PRIVATE_KEY
 
+### release-notification.yml
+Send Slack message to webhook with release information
+
+Secrets:
+- SLACK_WEBHOOK_URL
+
 ### lambda_review.yml
 Review Lambda with Terraform
 
