@@ -4,6 +4,7 @@ on:
   workflow_call:
     inputs:
       working-directory:
+        description: "Path to service relative to root, without trailing slash. Must contain a global.json file specifying the required .NET SDK version."
         type: string
         required: false
         default: "."
@@ -20,17 +21,27 @@ jobs:
   backend-checks:
     name: format · test
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@v6
 
-      - name: Run format-check
-        if: ${{ !cancelled() && inputs.format-check }}
-        working-directory: ${{ inputs.working-directory }}
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: ${{ inputs.working-directory }}/global.json
+          cache: ${{ hashFiles('**/packages.lock.json') != '' }}
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Install dependencies
         run: |
           dotnet tool restore
-          dotnet csharpier check .
+          dotnet restore --locked-mode
+
+      - name: Run format-check
+        if: ${{ !cancelled() && inputs.format-check }}
+        run: dotnet csharpier check .
 
       - name: Run dotnet-test
         if: ${{ !cancelled() && inputs.dotnet-test }}
-        working-directory: ${{ inputs.working-directory }}
-        run: dotnet test
+        run: dotnet test --no-restore

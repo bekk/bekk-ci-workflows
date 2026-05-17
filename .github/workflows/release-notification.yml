@@ -23,7 +23,7 @@ jobs:
           webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
           webhook-type: incoming-webhook
           payload: |
-            text: "Ny release i ${{github.event.repository.name}}"
+            text: "Ny release i ${{ env.REPO_NAME }}"
             blocks:
               - type: "section"
                 text:

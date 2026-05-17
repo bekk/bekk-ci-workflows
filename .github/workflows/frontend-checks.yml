@@ -4,6 +4,7 @@ on:
   workflow_call:
     inputs:
       working-directory:
+        description: "Path to application relative to root, without trailing slash. Must contain a .nvmrc file specifying the required node version."
         type: string
         required: false
         default: "."
@@ -24,24 +25,29 @@ jobs:
   frontend-checks:
     name: format · lint · type
     runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
     steps:
       - uses: actions/checkout@v6
 
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ${{ inputs.working-directory }}/.nvmrc
+          cache: npm
+          cache-dependency-path: ${{ inputs.working-directory }}/package-lock.json
+
       - name: Install dependencies
-        working-directory: ${{ inputs.working-directory }}
         run: npm ci
 
       - name: Run format-check
         if: ${{ !cancelled() && inputs.format-check }}
-        working-directory: ${{ inputs.working-directory }}
         run: npm run format-check
 
       - name: Run lint-check
         if: ${{ !cancelled() && inputs.lint-check }}
-        working-directory: ${{ inputs.working-directory }}
         run: npm run lint-check
 
       - name: Run type-check
         if: ${{ !cancelled() && inputs.type-check }}
-        working-directory: ${{ inputs.working-directory }}
         run: npm run type-check
