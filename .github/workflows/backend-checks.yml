@@ -9,17 +9,17 @@ on:
         required: false
         default: "."
       format-check:
-        description: "Enable to run format check, currently using csharpier. Before enabling this check, make sure you have installed csharpier as a dotnet tool (`dotnet tool install csharpier`)."
+        description: "Enable to run format check, currently using csharpier. Before enabling, install csharpier as a dotnet tool (`dotnet tool install csharpier`)."
         type: boolean
         required: true
       dotnet-test:
-        description: "Enable to run `dotnet test`. Before enabling this check, make sure you have a test project in the solution with at least 1 test."
+        description: "Enable to run `dotnet test`. Before enabling, set up a test project in the solution with at least 1 test."
         type: boolean
         required: true
 
 jobs:
   backend-checks:
-    name: format · test
+    name: Backend checks
     runs-on: ubuntu-latest
     defaults:
       run:

@@ -9,21 +9,21 @@ on:
         required: false
         default: "."
       format-check:
-        description: "Enable to run `npm run format-check`. Before enabling this check, make sure you have set up the `format-check` script in package.json."
+        description: "Enable to run `npm run format-check`. Before enabling, set up the `format-check` script in package.json."
         type: boolean
         required: true
       lint-check:
-        description: "Enable to run `npm run lint-check`. Before enabling this check, make sure you have set up the `lint-check` script in package.json."
+        description: "Enable to run `npm run lint-check`. Before enabling, set up the `lint-check` script in package.json."
         type: boolean
         required: true
       type-check:
-        description: "Enable to run `npm run type-check`. Before enabling this check, make sure you have set up the `type-check` script in package.json."
+        description: "Enable to run `npm run type-check`. Before enabling, set up the `type-check` script in package.json."
         type: boolean
         required: true
 
 jobs:
   frontend-checks:
-    name: format · lint · type
+    name: Frontend checks
     runs-on: ubuntu-latest
     defaults:
       run:
