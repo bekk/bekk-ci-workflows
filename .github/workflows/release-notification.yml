@@ -1,0 +1,38 @@
+name: Release notification
+
+on:
+  workflow_call:
+    secrets:
+      SLACK_WEBHOOK_URL:
+        required: true
+
+jobs:
+  slack-notification:
+    name: Slack notification
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' && github.event.action == 'released'
+    steps:
+      - name: Send notification
+        uses: slackapi/slack-github-action@v3
+        env:
+          REPO_NAME: ${{ github.event.repository.name }}
+          REPO_URL: ${{ github.event.repository.html_url }}
+          RELEASE_NAME: ${{ github.event.release.name }}
+          RELEASE_URL: ${{ github.event.release.html_url }}
+          RELEASE_TAG: ${{ github.event.release.tag_name }}
+        with:
+          webhook: ${{ secrets.SLACK_WEBHOOK_URL }}
+          webhook-type: incoming-webhook
+          payload: |
+            {
+              "text": "Ny release i ${{ env.REPO_NAME }}",
+              "blocks": [
+                {
+                  "type": "section",
+                  "text": {
+                    "type": "mrkdwn",
+                    "text": ${{ toJSON(format('<{0}|{1}>: {2} (<{3}|#{4}>)', env.REPO_URL, env.REPO_NAME, env.RELEASE_NAME, env.RELEASE_URL, env.RELEASE_TAG)) }}
+                  }
+                }
+              ]
+            }

@@ -1,0 +1,47 @@
+name: Backend checks
+
+on:
+  workflow_call:
+    inputs:
+      working-directory:
+        description: "Path to service relative to root, without trailing slash. Must contain a global.json file specifying the required .NET SDK version."
+        type: string
+        required: false
+        default: "."
+      format-check:
+        description: "Enable to run format check, currently using csharpier. Before enabling, install csharpier as a dotnet tool (`dotnet tool install csharpier`)."
+        type: boolean
+        required: true
+      dotnet-test:
+        description: "Enable to run `dotnet test`. Before enabling, set up a test project in the solution with at least 1 test."
+        type: boolean
+        required: true
+
+jobs:
+  backend-checks:
+    name: Backend checks
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ inputs.working-directory }}
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-dotnet@v5
+        with:
+          global-json-file: ${{ inputs.working-directory }}/global.json
+          cache: ${{ hashFiles('**/packages.lock.json') != '' }}
+          cache-dependency-path: '**/packages.lock.json'
+
+      - name: Install dependencies
+        run: |
+          dotnet tool restore
+          dotnet restore --locked-mode
+
+      - name: Run format-check
+        if: ${{ !cancelled() && inputs.format-check }}
+        run: dotnet csharpier check .
+
+      - name: Run dotnet-test
+        if: ${{ !cancelled() && inputs.dotnet-test }}
+        run: dotnet test --no-restore

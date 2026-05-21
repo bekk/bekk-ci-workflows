@@ -3,6 +3,25 @@ Reusable GitHub Actions workflows for internal use
 
 ## Workflows
 
+### backend-checks.yml
+Run format check (currently csharpier) and dotnet tests
+
+Inputs:
+- working-directory
+  default: "."
+- format-check
+- dotnet-test
+
+### frontend-checks.yml
+Run npm scripts for checking format, lint and types
+
+Inputs:
+- working-directory
+  default: "."
+- format-check
+- lint-check
+- type-check
+
 ### build.yml
 Build and push docker image to AWS ECR
 
@@ -45,6 +64,12 @@ Secrets:
 - AWS_ACCESS_KEY_ID
 - AWS_SECRET_ACCESS_KEY
 - SSH_PRIVATE_KEY
+
+### release-notification.yml
+Send Slack message to webhook with release information
+
+Secrets:
+- SLACK_WEBHOOK_URL
 
 ### lambda_review.yml
 Review Lambda with Terraform
