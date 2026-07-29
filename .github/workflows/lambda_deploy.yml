@@ -33,12 +33,11 @@ jobs:
       - name: Checkout git repo
         uses: actions/checkout@v6
 
-      - name: fetch artifacts
+      - name: Download artifact
         uses: actions/download-artifact@v8
-
-      - name: unbox artifacts
-        run: |
-          mv artifact/* .
+        with:
+          name: artifact
+          path: .
 
       - name: Set up Terraform
         uses: hashicorp/setup-terraform@v4
