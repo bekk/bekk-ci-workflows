@@ -13,7 +13,7 @@ Inputs:
 - dotnet-test
 
 ### frontend-checks.yml
-Run npm scripts for checking format, lint and types
+Run npm scripts for checking format, lint, types and tests
 
 Inputs:
 - working-directory
@@ -21,6 +21,8 @@ Inputs:
 - format-check
 - lint-check
 - type-check
+- test
+  default: false
 
 ### build.yml
 Build and push docker image to AWS ECR

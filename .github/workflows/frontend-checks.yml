@@ -20,6 +20,11 @@ on:
         description: "Enable to run `npm run type-check`. Before enabling, set up the `type-check` script in package.json."
         type: boolean
         required: true
+      test:
+        description: "Enable to run `npm run test`. Before enabling, set up the `test` script in package.json."
+        type: boolean
+        required: false
+        default: false
 
 jobs:
   frontend-checks:
@@ -51,3 +56,7 @@ jobs:
       - name: Run type-check
         if: ${{ !cancelled() && inputs.type-check }}
         run: npm run type-check
+
+      - name: Run test
+        if: ${{ !cancelled() && inputs.test }}
+        run: npm run test
